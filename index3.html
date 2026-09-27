@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="restoBayApp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HungerFuel - Gourmet Culinary & Dessert Ordering</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- AngularJS CDN v1.8.2 -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <!-- Google Fonts Playfair Display & Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['"Playfair Display"', 'Georgia', 'serif'],
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        cream: {
+                            50: '#fcfbfa',
+                            100: '#f5f2eb',
+                            200: '#ebe5d8',
+                            800: '#3d342b',
+                            900: '#241e17'
+                        },
+                        amberGlow: '#f97316'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .scrollbar-none::-webkit-scrollbar { display: none; }
+        .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #fcfbfa; color: #241e17; }
+        .serif-title { font-family: 'Playfair Display', Georgia, serif; }
+        
+        /* Smooth shadow elevation & hover effect */
+        .editorial-card {
+            background: #ffffff;
+            border: 1px solid #eee8de;
+            box-shadow: 0 10px 30px -10px rgba(36, 30, 23, 0.04);
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .editorial-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 22px 45px -12px rgba(36, 30, 23, 0.1);
+            border-color: #d6cca8;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade { animation: fadeIn 0.4s ease-out forwards; }
+    </style>
+</head>
+<body ng-controller="RestoController" class="antialiased flex flex-col min-h-screen selection:bg-amber-500 selection:text-white">
+
+    <header class="bg-[#fcfbfa]/90 backdrop-blur-md border-b border-[#eee8de] sticky top-0 z-40 px-4 sm:px-6 lg:px-16 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-slate-900 rounded-2xl flex items-center justify-center text-white font-serif font-bold text-xl shadow-md">H</div>
+            <div>
+                <span class="text-xl font-serif font-extrabold tracking-tight text-slate-900">Hunger<span class="text-amber-600">Fuel</span></span>
+                <span class="hidden md:inline-block ml-2 text-[10px] font-bold px-2 py-0.5 bg-amber-100 text-amber-800 rounded-md uppercase tracking-wider">Kitchen 1956</span>
+            </div>
+        </div>
+        
+        <!-- Interactive Location Pill -->
+        <div ng-click="openLocationModal()" class="hidden sm:flex items-center space-x-2.5 cursor-pointer bg-white hover:bg-amber-50/50 px-4 py-2 rounded-2xl border border-[#eee8de] transition group shadow-2xs">
+            <div class="w-7 h-7 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-xs group-hover:scale-105 transition-transform">📍</div>
+            <div class="text-left">
+                <div class="text-[9px] font-black text-slate-400 uppercase tracking-wider leading-none">Delivering To</div>
+                <div class="text-xs font-bold text-slate-800 truncate max-w-[180px] mt-0.5">{{currentLocation}}</div>
+            </div>
+            <span class="text-[10px] text-slate-400 font-bold ml-1">▼</span>
+        </div>
+
+        <!-- User Profile Action -->
+        <div class="flex items-center gap-3">
+            <div ng-click="openAccountModal()" class="cursor-pointer bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-2xl font-bold text-xs flex items-center gap-2.5 transition shadow-sm">
+                <span>👤</span>
+                <span class="hidden sm:inline">{{ currentUser ? currentUser.name.split(' ')[0] : 'Sign In' }}</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-16 py-6 sm:py-10 max-w-7xl space-y-12 sm:space-y-16">
+
+        <!-- HERO SECTION: Editorial Headline + Collage with Hero Slider -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center pt-2 pb-6">
+            
+            <!-- Left Editorial Text & Search -->
+            <div class="lg:col-span-6 space-y-6">
+                <div class="inline-flex items-center gap-2 bg-amber-100/70 border border-amber-200 text-amber-800 text-xs font-bold px-3.5 py-1.5 rounded-full uppercase tracking-wider">
+                    <span>✦ HARMONY HOUSE KITCHEN</span>
+                </div>
+                
+                <h1 class="serif-title text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 leading-[1.12]">
+                    Taste Flavors <span class="inline-block w-9 h-9 rounded-full overflow-hidden align-middle mx-1 shadow-xs border border-white"><img src="https://images.unsplash.com/photo-1587314168485-3236d6710814?w=100&q=80" class="w-full h-full object-cover"></span> From Global the World
+                </h1>
+
+                <p class="text-slate-600 text-sm sm:text-base font-medium leading-relaxed max-w-xl">
+                    A place where passion, flavor, and craft come together on every plate to create a truly memorable dining and dessert experience delivered right to your door.
+                </p>
+
+                <!-- Search Bar -->
+                <div class="relative max-w-xl">
+                    <input type="text" ng-model="searchQuery" placeholder="What you want to grab today? Waffles, Kulfis, Shakes..." class="w-full pl-5 pr-14 py-4 bg-white border border-[#eee8de] rounded-2xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm text-slate-900 shadow-sm transition font-medium placeholder-slate-400">
+                    <button ng-click="scrollToMenu()" class="absolute right-2 top-2 bottom-2 px-4 bg-amber-500 hover:bg-amber-600 text-white rounded-xl transition flex items-center justify-center shadow-sm">
+                        <span>🔍</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Hero Image Collage with Slider -->
+            <div class="lg:col-span-6">
+                <div class="grid grid-cols-2 gap-4 items-center">
+                    <!-- Left Column: Slider Box + Small Food Image -->
+                    <div class="space-y-4">
+                        <div class="h-64 sm:h-72 rounded-[2rem] overflow-hidden shadow-xl border-4 border-white relative group">
+                            <!-- Slider Images -->
+                            <div ng-repeat="slide in heroSlides" ng-show="currentSlide === $index" class="absolute inset-0 transition-opacity duration-700 animate-fade">
+                                <img ng-src="{{slide.image}}" alt="{{slide.title}}" class="w-full h-full object-cover">
+                                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent flex flex-col justify-end p-5 text-white">
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-0.5">{{slide.tag}}</span>
+                                    <h3 class="serif-title text-lg sm:text-xl font-bold leading-tight">{{slide.title}}</h3>
+                                    <p class="text-[11px] text-slate-300 mt-0.5 line-clamp-1">{{slide.subtitle}}</p>
+                                </div>
+                            </div>
+
+                            <!-- Slider Controls -->
+                            <button ng-click="prevSlide()" class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/80 hover:bg-white text-slate-900 flex items-center justify-center shadow-md font-bold text-xs transition backdrop-blur-xs">❮</button>
+                            <button ng-click="nextSlide()" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/80 hover:bg-white text-slate-900 flex items-center justify-center shadow-md font-bold text-xs transition backdrop-blur-xs">❯</button>
+
+                            <!-- Indicators -->
+                            <div class="absolute bottom-3 right-4 flex gap-1 z-10">
+                                <button ng-repeat="slide in heroSlides" ng-click="setSlide($index)" class="w-1.5 h-1.5 rounded-full transition-all" ng-class="currentSlide === $index ? 'w-5 bg-amber-500' : 'bg-white/60'"></button>
+                            </div>
+                        </div>
+
+                        <div class="h-32 sm:h-36 rounded-[2rem] overflow-hidden shadow-lg border-4 border-white relative group">
+                            <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&q=80" alt="Kulfis" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Two Stacked Images -->
+                    <div class="space-y-4 pt-6 sm:pt-10">
+                        <div class="h-36 sm:h-40 rounded-[2rem] overflow-hidden shadow-lg border-4 border-white relative group">
+                            <img src="https://images.unsplash.com/photo-1612927601101-4537b42c48d9?w=600&q=80" alt="Maggie" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                        </div>
+                        <div class="h-64 sm:h-72 rounded-[2rem] overflow-hidden shadow-xl border-4 border-white relative group">
+                            <img src="https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=600&q=80" alt="Shakes" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                            <div class="absolute bottom-4 right-4 text-xs font-serif font-black tracking-widest text-white/90 bg-slate-900/60 backdrop-blur-xs px-3 py-1 rounded-full pointer-events-none">
+                                EST. 1956
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="space-y-4 pt-4">
+            <div class="flex items-center justify-between">
+                <div class="text-xs font-black uppercase tracking-widest text-amber-700 flex items-center gap-2">
+                    <span class="w-2 h-2 bg-amber-600 rounded-full animate-ping"></span>
+                    FEATURED DEALS & DISCOUNTS
+                </div>
+                <span class="text-xs text-slate-400 font-bold">Scroll for more →</span>
+            </div>
+            <div class="flex gap-4 overflow-x-auto pb-3 scrollbar-none">
+                <div ng-repeat="offer in offersList" class="min-w-[280px] sm:min-w-[310px] h-36 rounded-3xl relative overflow-hidden shadow-sm editorial-card shrink-0 cursor-pointer group p-5 flex flex-col justify-between" ng-click="applyOfferCode(offer)">
+                    <div class="absolute inset-0 bg-cover bg-center opacity-15 transition-transform duration-700 group-hover:scale-110" style="background-image: url('https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&q=80');"></div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-white via-white/90 to-transparent"></div>
+                    
+                    <div class="relative z-10 flex items-center justify-between">
+                        <span class="w-9 h-9 rounded-2xl bg-amber-100 border border-amber-200 flex items-center justify-center text-sm font-black text-amber-800">🎁</span>
+                        <span class="text-[10px] font-black uppercase px-2.5 py-1 bg-amber-100 text-amber-900 rounded-xl border border-amber-200">{{offer.code}}</span>
+                    </div>
+                    
+                    <div class="relative z-10">
+                        <div class="text-slate-900 font-serif font-bold text-base tracking-tight">{{offer.title}}</div>
+                        <div class="text-xs font-semibold text-slate-500 mt-0.5">{{offer.subtitle}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-4 pt-4" id="menu-section">
+            <div class="flex justify-between items-center flex-wrap gap-3">
+                <h2 class="serif-title text-2xl font-extrabold text-slate-900">Popular Categories</h2>
+                <label class="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer bg-white px-4 py-2.5 rounded-2xl border border-[#eee8de] shadow-2xs hover:border-emerald-500 transition">
+                    <input type="checkbox" ng-model="vegOnly" class="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4">
+                    🌱 Veg Only
+                </label>
+            </div>
+
+            <!-- Scrollable Categories with Zomato/Swiggy style circular pictures -->
+            <div class="flex gap-4 overflow-x-auto pb-3 scrollbar-none items-center">
+                <button ng-click="selectCategory('All')" ng-class="{'ring-2 ring-slate-900 bg-white shadow-md': selectedCategory === 'All', 'bg-white/80 text-slate-700 hover:bg-white': selectedCategory !== 'All'}" class="flex flex-col items-center gap-2.5 p-3 rounded-2xl whitespace-nowrap transition min-w-[95px] group shrink-0 border border-[#eee8de]">
+                    <div class="w-14 h-14 rounded-full overflow-hidden shadow-2xs group-hover:scale-105 transition-transform border border-slate-200 flex items-center justify-center bg-slate-900 text-white font-serif font-bold text-xl">
+                        ✦
+                    </div>
+                    <span class="text-xs font-bold">All Items</span>
+                </button>
+
+                <button ng-repeat="cat in categories" ng-click="selectCategory(cat)" ng-class="{'ring-2 ring-slate-900 bg-white shadow-md': selectedCategory === cat, 'bg-white/80 text-slate-700 hover:bg-white': selectedCategory !== cat}" class="flex flex-col items-center gap-2.5 p-3 rounded-2xl whitespace-nowrap transition min-w-[95px] group shrink-0 border border-[#eee8de]">
+                    <div class="w-14 h-14 rounded-full overflow-hidden shadow-2xs group-hover:scale-105 transition-transform border border-slate-200">
+                        <img ng-src="{{categoryImages[cat] || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=200&q=80'}}" alt="{{cat}}" class="w-full h-full object-cover">
+                    </div>
+                    <span class="text-xs font-bold truncate max-w-[85px]">{{cat}}</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Category Banner (when category is selected) -->
+        <div ng-if="selectedCategory !== 'All'" class="relative overflow-hidden bg-slate-900 text-white rounded-3xl p-6 md:p-8 shadow-xl flex items-center justify-between gap-6 animate-fade">
+            <div class="space-y-2 z-10">
+                <div class="inline-flex items-center gap-2 bg-amber-500/20 text-amber-300 text-xs font-bold px-3.5 py-1 rounded-full uppercase tracking-wider border border-amber-500/30">
+                    <span>✨ Spotlight Collection</span>
+                </div>
+                <h2 class="serif-title text-2xl md:text-3xl font-extrabold text-white tracking-tight">{{selectedCategory}}</h2>
+                <p class="text-xs md:text-sm text-slate-300 font-medium max-w-lg leading-relaxed">
+                    Hand-crafted assortment of {{selectedCategory.toLowerCase()}}, prepared fresh on order with high-grade gourmet ingredients and supreme quality.
+                </p>
+            </div>
+            <div class="w-32 h-32 sm:w-40 sm:h-40 rounded-2xl overflow-hidden shadow-2xl border border-white/15 shrink-0 hidden sm:block">
+                <img ng-src="{{categoryImages[selectedCategory] || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500&q=80'}}" alt="{{selectedCategory}}" class="w-full h-full object-cover transform hover:scale-110 transition duration-500">
+            </div>
+        </div>
+
+        <div class="space-y-6 pb-16">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="serif-title text-2xl font-extrabold text-slate-900">{{selectedCategory === 'All' ? 'Popular Dishes' : selectedCategory}}</h2>
+                    <p class="text-xs text-slate-500 font-medium">Prepared instantly & ready for quick browsing</p>
+                </div>
+                <span class="text-xs font-bold px-3 py-1 bg-amber-100 text-amber-900 rounded-full border border-amber-200">Live Menu</span>
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div ng-repeat="item in menuItems | filter:matchesCategory | filter:searchQuery | filter:matchesVeg" class="editorial-card p-5 rounded-3xl flex flex-col justify-between group animate-fade">
+                    
+                    <div class="space-y-4">
+                        <!-- Product Thumbnail with Veg Tag -->
+                        <div class="w-full h-40 rounded-2xl bg-amber-50/50 border border-amber-100 flex items-center justify-center overflow-hidden relative group-hover:scale-[1.02] transition-transform shadow-2xs">
+                            <span class="text-6xl select-none">{{item.emoji || '🍱'}}</span>
+                            <div class="absolute top-3 left-3 w-6 h-6 rounded-full bg-white/90 backdrop-blur-xs border border-slate-200 flex items-center justify-center p-0.5 shadow-2xs">
+                                <span class="w-full h-full rounded-full" ng-class="item.veg ? 'bg-emerald-500' : 'bg-rose-500'"></span>
+                            </div>
+                        </div>
+                        
+                        <!-- Item Details -->
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] font-black uppercase text-amber-700 tracking-wider bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">{{item.category}}</span>
+                                <div class="text-xs font-bold text-amber-600 flex items-center gap-1">⭐ {{item.rating}}</div>
+                            </div>
+                            <div class="serif-title font-extrabold text-slate-900 text-lg leading-tight">{{item.name}}</div>
+                            <div class="text-xs text-slate-500 line-clamp-2 mt-1 font-medium">{{item.description || 'Gourmet freshly baked recipe'}}</div>
+                            <div class="text-[11px] font-bold text-slate-400 mt-2">⏱️ {{item.prepTime}} prep time</div>
+                        </div>
+                    </div>
+
+                    <!-- Price & View Button (Phase 1: VIEW) -->
+                    <div class="flex items-center justify-between mt-5 pt-4 border-t border-slate-100">
+                        <div>
+                            <div class="text-[9px] uppercase font-black text-slate-400 tracking-wider">Price</div>
+                            <div class="text-base font-extrabold text-slate-900">₹{{item.variants[0].price}}</div>
+                        </div>
+                        <button ng-click="openCustomizeModal(item)" class="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-2xl text-xs font-bold transition shadow-sm transform hover:scale-105">
+                            VIEW
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <div ng-if="customizingItem" class="fixed inset-0 z-50 bg-slate-950/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white border border-[#eee8de] rounded-[2.5rem] max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
+            <div class="p-6 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
+                <div>
+                    <h3 class="serif-title font-extrabold text-xl text-slate-900">{{customizingItem.name}}</h3>
+                    <div class="text-xs text-slate-500 font-medium">{{customizingItem.category}} • ⭐ {{customizingItem.rating}}</div>
+                </div>
+                <button ng-click="closeCustomizeModal()" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center font-bold text-slate-600 transition text-xs">✕</button>
+            </div>
+
+            <div class="p-6 space-y-6 flex-grow">
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="font-bold text-xs text-slate-700 uppercase tracking-wider">Choose Size / Variant</span>
+                        <span class="text-[10px] font-black uppercase tracking-wider bg-amber-50 text-amber-800 px-2.5 py-0.5 rounded-full border border-amber-200">Required</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div ng-repeat="variant in customizingItem.variants" 
+                             ng-click="selectVariant(variant)"
+                             class="p-4 rounded-2xl border-2 flex items-center justify-center cursor-pointer transition"
+                             ng-class="selectedVariant.name === variant.name ? 'border-slate-900 bg-amber-50/40 shadow-2xs' : 'border-slate-200 bg-slate-50/50 hover:border-slate-300'">
+                            <div class="flex items-center gap-3 w-full justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center" ng-class="selectedVariant.name === variant.name ? 'border-slate-900' : 'border-slate-300'">
+                                        <div class="w-2.5 h-2.5 rounded-full bg-slate-900" ng-if="selectedVariant.name === variant.name"></div>
+                                    </div>
+                                    <span class="font-bold text-sm text-slate-900">{{variant.name}}</span>
+                                </div>
+                                <span class="font-extrabold text-slate-900 text-sm">₹{{variant.price}}.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div ng-if="customizingItem.addons && customizingItem.addons.length > 0">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="font-bold text-xs text-slate-700 uppercase tracking-wider">Customize Addons</span>
+                        <span class="text-xs text-slate-400 font-bold">Optional</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div ng-repeat="addon in customizingItem.addons"
+                             ng-click="toggleAddon(addon)"
+                             class="p-4 rounded-2xl border flex items-center justify-between cursor-pointer transition"
+                             ng-class="isAddonSelected(addon) ? 'border-slate-900 bg-amber-50/40 shadow-2xs' : 'border-slate-200 bg-slate-50/50 hover:border-slate-300'">
+                            <div class="flex items-center gap-3">
+                                <div class="w-5 h-5 rounded-lg border-2 flex items-center justify-center text-xs text-white font-bold" ng-class="isAddonSelected(addon) ? 'border-slate-900 bg-slate-900' : 'border-slate-300 bg-transparent'">
+                                    <span ng-if="isAddonSelected(addon)">✓</span>
+                                </div>
+                                <span class="font-bold text-sm text-slate-700">{{addon.name}}</span>
+                            </div>
+                            <span class="font-extrabold text-slate-900 text-sm">+₹{{addon.price}}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 border-t border-slate-100 bg-slate-50 rounded-b-[2.5rem] flex items-center justify-between sticky bottom-0">
+                <div>
+                    <div class="text-[9px] uppercase font-black text-slate-400 tracking-wider">Total Item Price</div>
+                    <div class="text-2xl font-extrabold text-slate-900">₹{{calculateModalTotal()}}</div>
+                </div>
+                <button ng-click="showToast('Viewing item details successfully.')" class="bg-slate-900 hover:bg-slate-800 text-white px-6 py-3.5 rounded-2xl font-bold text-xs shadow-md transition">
+                    View Details Only
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div ng-if="showAccountModal" class="fixed inset-0 z-50 bg-slate-950/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white border border-[#eee8de] rounded-[2.5rem] max-w-md w-full overflow-hidden shadow-2xl flex flex-col">
+            <div class="p-6 border-b border-slate-100 flex items-center justify-between bg-white">
+                <div>
+                    <h3 class="serif-title font-extrabold text-lg text-slate-900">
+                        {{ currentUser ? 'My Account' : (authMode === 'login' ? 'Welcome Back' : 'Create Account') }}
+                    </h3>
+                    <div class="text-xs text-slate-500 font-medium">
+                        {{ currentUser ? 'Manage your profile & reward coins' : (authMode === 'login' ? 'Sign in to access orders' : 'Join HungerFuel for exclusive offers') }}
+                    </div>
+                </div>
+                <button ng-click="closeAccountModal()" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center font-bold text-slate-600 transition text-xs">✕</button>
+            </div>
+
+            <!-- Logged In View -->
+            <div ng-if="currentUser" class="p-6 space-y-5">
+                <div class="bg-amber-50/70 border border-amber-200 p-5 rounded-3xl flex items-center gap-4">
+                    <div class="w-14 h-14 rounded-2xl bg-slate-900 text-white font-serif font-bold flex items-center justify-center text-xl shadow-md">
+                        {{ currentUser.name.charAt(0).toUpperCase() }}
+                    </div>
+                    <div>
+                        <div class="font-extrabold text-slate-900 text-base">{{ currentUser.name }}</div>
+                        <div class="text-xs text-slate-600 font-medium">{{ currentUser.email }}</div>
+                        <div class="text-xs text-amber-700 font-bold mt-1">📞 {{ currentUser.phone }}</div>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Account Benefits</div>
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs font-bold text-slate-700 flex justify-between items-center cursor-pointer hover:border-slate-300 transition" ng-click="showToast('You have 350 Reward Coins active!')">
+                        <span>🎁 Rewards & Coins Balance</span>
+                        <span class="font-black text-amber-700">350 pts</span>
+                    </div>
+                </div>
+
+                <button ng-click="logoutUser()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 py-3.5 rounded-2xl font-bold text-xs transition shadow-2xs border border-slate-200">
+                    Sign Out
+                </button>
+            </div>
+
+            <!-- Logged Out View -->
+            <div ng-if="!currentUser" class="p-6 space-y-5">
+                <div class="grid grid-cols-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
+                    <button ng-click="authMode = 'login'" ng-class="{'bg-slate-900 text-white shadow-sm': authMode === 'login', 'text-slate-600 hover:text-slate-900': authMode !== 'login'}" class="py-2.5 rounded-xl font-bold text-xs transition">Sign In</button>
+                    <button ng-click="authMode = 'signup'" ng-class="{'bg-slate-900 text-white shadow-sm': authMode === 'signup', 'text-slate-600 hover:text-slate-900': authMode !== 'signup'}" class="py-2.5 rounded-xl font-bold text-xs transition">Register</button>
+                </div>
+
+                <!-- Signup Form -->
+                <div ng-if="authMode === 'signup'" class="space-y-3.5">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-500 mb-1 uppercase tracking-wider">Full Name</label>
+                        <input type="text" ng-model="signupForm.name" placeholder="Enter your name" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500 text-slate-900">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-500 mb-1 uppercase tracking-wider">Email Address</label>
+                        <input type="email" ng-model="signupForm.email" placeholder="name@example.com" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500 text-slate-900">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-500 mb-1 uppercase tracking-wider">Phone Number</label>
+                        <input type="tel" ng-model="signupForm.phone" placeholder="9876543210" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500 text-slate-900">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-500 mb-1 uppercase tracking-wider">Password</label>
+                        <input type="password" ng-model="signupForm.password" placeholder="••••••••" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500 text-slate-900">
+                    </div>
+                    <button ng-click="registerNewUser()" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-3.5 rounded-2xl font-bold text-xs shadow-lg transition">
+                        Create Account
+                    </button>
+                </div>
+
+                <!-- Login Form -->
+                <div ng-if="authMode === 'login'" class="space-y-3.5">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-500 mb-1 uppercase tracking-wider">Email or Phone</label>
+                        <input type="text" ng-model="loginForm.identifier" placeholder="Enter email or phone" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500 text-slate-900">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-500 mb-1 uppercase tracking-wider">Password</label>
+                        <input type="password" ng-model="loginForm.password" placeholder="••••••••" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500 text-slate-900">
+                    </div>
+                    <button ng-click="loginExistingUser()" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-3.5 rounded-2xl font-bold text-xs shadow-lg transition">
+                        Sign In Securely
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div ng-if="showLocationModal" class="fixed inset-0 z-50 bg-slate-950/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white border border-[#eee8de] rounded-[2.5rem] max-w-md w-full overflow-hidden shadow-2xl flex flex-col">
+            <div class="p-6 border-b border-slate-100 flex items-center justify-between bg-white">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center text-base font-bold shadow-2xs border border-amber-200">📍</div>
+                    <div>
+                        <h3 class="serif-title font-extrabold text-lg text-slate-900">Delivery Location</h3>
+                        <div class="text-xs text-slate-500 font-medium">Select your delivery address</div>
+                    </div>
+                </div>
+                <button ng-click="closeLocationModal()" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center font-bold text-slate-600 transition text-xs">✕</button>
+            </div>
+
+            <div class="p-6 space-y-4">
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 text-base">🔍</span>
+                    <input type="text" ng-model="locationSearchQuery" placeholder="Search area or landmark..." class="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500 text-slate-900 transition">
+                </div>
+
+                <div ng-click="detectCurrentGPSLocation()" class="p-4 bg-amber-50/70 hover:bg-amber-100/75 border border-amber-200 rounded-2xl flex items-center justify-between cursor-pointer transition group">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-10 h-10 rounded-xl bg-amber-600 text-white flex items-center justify-center text-base shadow-sm group-hover:scale-105 transition-transform">🎯</div>
+                        <div>
+                            <div class="font-extrabold text-xs text-amber-900">Get Current GPS Location</div>
+                            <div class="text-[10px] text-slate-500 font-medium">Instant auto-detection</div>
+                        </div>
+                    </div>
+                    <span class="text-amber-800 font-bold text-xs">Enable ➔</span>
+                </div>
+
+                <div class="space-y-2 pt-1">
+                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Or Enter Manually</div>
+                    <div class="flex gap-2">
+                        <input type="text" ng-model="manualAddressInput" placeholder="Enter complete address..." class="flex-grow px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500 text-slate-900">
+                        <button ng-click="saveManualAddress()" class="bg-slate-900 hover:bg-slate-800 text-white px-5 py-3.5 rounded-2xl text-xs font-bold transition shadow-sm">Set</button>
+                    </div>
+                </div>
+
+                <div class="space-y-2 pt-1" ng-if="recentAddresses.length > 0">
+                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Recent Saved Addresses</div>
+                    <div class="space-y-2 max-h-36 overflow-y-auto scrollbar-none">
+                        <div ng-repeat="addr in recentAddresses" ng-click="selectAddress(addr)" class="p-3.5 rounded-2xl border border-slate-200 hover:border-slate-900 hover:bg-slate-50 flex items-center justify-between cursor-pointer transition">
+                            <div class="flex items-center gap-3">
+                                <span class="text-amber-600">📍</span>
+                                <div>
+                                    <div class="font-bold text-xs text-slate-900">{{addr.title}}</div>
+                                    <div class="text-[10px] text-slate-500 truncate max-w-[220px]">{{addr.detail}}</div>
+                                </div>
+                            </div>
+                            <span class="text-xs font-bold text-amber-700">Select</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 border-t border-slate-100 bg-slate-50 flex justify-end">
+                <button ng-click="closeLocationModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 px-6 py-2.5 rounded-2xl font-bold text-xs transition">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div ng-if="toastMessage" class="fixed bottom-6 right-4 sm:right-6 z-50 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-xl flex items-center gap-3 border border-slate-800 animate-bounce">
+        <span class="text-lg">🎉</span>
+        <div class="text-xs font-bold">{{toastMessage}}</div>
+        <button ng-click="toastMessage = null" class="ml-2 text-slate-400 hover:text-white text-xs">✕</button>
+    </div>
+
+    <!-- Professional Editorial Footer -->
+    <footer class="bg-slate-900 border-t border-slate-800 mt-20 pt-14 pb-14 px-4 sm:px-6 lg:px-16 text-slate-400">
+        <div class="max-w-7xl mx-auto flex flex-col items-center text-center space-y-6">
+            
+            <div class="flex flex-col items-center space-y-2">
+                <div class="flex items-center space-x-2">
+                    <span class="text-2xl font-serif font-extrabold tracking-tight text-white">Hunger<span class="text-amber-500">Fuel</span></span>
+                </div>
+                <p class="text-xs text-slate-400 font-bold tracking-widest uppercase">Fuel Your Hunger with Creative Delights</p>
+            </div>
+
+            <div class="space-y-2 text-xs text-slate-300 max-w-xl font-medium">
+                <p>Shop No. 01, Kumbhavati Niwas, Landmark - Swagat Hall, Carter Rd Number 5, Borivali East, Mumbai, Maharashtra, 400066</p>
+                <div class="flex flex-wrap items-center justify-center gap-6 pt-2 text-white font-bold">
+                    <a href="tel:8828931694" class="flex items-center gap-1.5 hover:text-amber-400 transition">
+                        <span class="text-amber-500">📞</span> 8828931694
+                    </a>
+                    <a href="mailto:info@hungerfuel.in" class="flex items-center gap-1.5 hover:text-amber-400 transition">
+                        <span class="text-amber-500">✉️</span> info@hungerfuel.in
+                    </a>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-center gap-6 text-xs font-bold text-slate-300 pt-2">
+                <span ng-click="showToast('Navigating to About Us')" class="cursor-pointer hover:text-amber-400 transition">About Us</span>
+                <span ng-click="showToast('Partner with Us portal')" class="cursor-pointer hover:text-amber-400 transition">Partner with Us</span>
+                <span ng-click="showToast('Privacy Policy details')" class="cursor-pointer hover:text-amber-400 transition">Privacy Policy</span>
+                <span ng-click="showToast('Terms of Service')" class="cursor-pointer hover:text-amber-400 transition">Terms of Service</span>
+                <span ng-click="showToast('Customer Support')" class="cursor-pointer hover:text-amber-400 transition">Support</span>
+            </div>
+
+            <div class="w-full max-w-3xl h-px bg-slate-800 my-2"></div>
+
+            <div class="text-xs text-slate-500 font-medium pb-2">
+                © 2026 <span class="text-white font-bold">Hunger Fuel</span> · All rights reserved · Crafted with ❤️ for food lovers
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        var app = angular.module('restoBayApp', []);
+
+        app.controller('RestoController', function($scope, $timeout) {
+            $scope.currentLocation = "Borivali East, Mumbai";
+            $scope.currentUser = null;
+            $scope.authMode = 'login';
+            $scope.showLocationModal = false;
+            $scope.locationSearchQuery = '';
+            $scope.manualAddressInput = '';
+
+            // Hero Slider State
+            $scope.currentSlide = 0;
+            $scope.heroSlides = [
+                { title: "Signature Belgian Waffles", subtitle: "Crispy outer layer with rich Nutella & Choco chips", tag: "Bestseller", image: "https://images.unsplash.com/photo-1587314168485-3236d6710814?w=800&q=80" },
+                { title: "Royal Malai & Sitaphal Kulfis", subtitle: "Traditional slow-cooked creamy delights", tag: "Chef Special", image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&q=80" },
+                { title: "Loaded Cheese & Corn Maggie", subtitle: "Instant comfort food cooked to perfection", tag: "Quick Bite", image: "https://images.unsplash.com/photo-1612927601101-4537b42c48d9?w=800&q=80" },
+                { title: "Nutella Thick Shakes & Smoothies", subtitle: "Rich velvety blends topped with whipped cream", tag: "Refreshing", image: "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=800&q=80" }
+            ];
+
+            $scope.nextSlide = function() {
+                $scope.currentSlide = ($scope.currentSlide + 1) % $scope.heroSlides.length;
+            };
+
+            $scope.prevSlide = function() {
+                $scope.currentSlide = ($scope.currentSlide - 1 + $scope.heroSlides.length) % $scope.heroSlides.length;
+            };
+
+            $scope.setSlide = function(index) {
+                $scope.currentSlide = index;
+            };
+
+            // Auto timer for hero slider
+            var sliderTimer = $timeout(function autoSlide() {
+                $scope.nextSlide();
+                sliderTimer = $timeout(autoSlide, 4500);
+            }, 4500);
+
+            $scope.scrollToMenu = function() {
+                let menuElem = document.getElementById('menu-section');
+                if(menuElem) { menuElem.scrollIntoView({ behavior: 'smooth' }); }
+            };
+
+            $scope.offersList = [
+                { title: '25% Discount offer', subtitle: 'Use code WELCOME50 on ₹200+', code: 'WELCOME50' },
+                { title: 'Flat ₹100 Off', subtitle: 'On your first 3 gourmet orders', code: 'FLAT20' },
+                { title: 'Free Delivery', subtitle: 'On all orders above ₹350', code: 'WELCOME50' },
+                { title: 'Special Waffle Deal', subtitle: 'Buy 1 Get 1 on selected desserts', code: 'WELCOME50' }
+            ];
+
+            $scope.applyOfferCode = function(offer) {
+                $scope.showToast("Applied offer code: " + offer.code);
+                $scope.scrollToMenu();
+            };
+
+            $scope.recentAddresses = [
+                { title: 'Home', detail: 'Flat 402, Sunshine Heights, Near Central Park' },
+                { title: 'Workplace', detail: 'Tower B, Tech Park, 4th Floor' }
+            ];
+
+            $scope.openLocationModal = function() { $scope.showLocationModal = true; };
+            $scope.closeLocationModal = function() { $scope.showLocationModal = false; };
+
+            $scope.detectCurrentGPSLocation = function() {
+                if (navigator.geolocation) {
+                    $scope.showToast("Fetching precise GPS location...");
+                    navigator.geolocation.getCurrentPosition(function(position) {
+                        $timeout(function() {
+                            $scope.currentLocation = "Lat: " + position.coords.latitude.toFixed(2) + ", Lng: " + position.coords.longitude.toFixed(2);
+                            $scope.showToast("Location updated successfully!");
+                            $scope.closeLocationModal();
+                        }, 600);
+                    }, function() {
+                        $scope.showToast("Unable to retrieve location. Enter manually.");
+                    });
+                } else {
+                    $scope.showToast("Geolocation not supported.");
+                }
+            };
+
+            $scope.saveManualAddress = function() {
+                let addr = ($scope.manualAddressInput || "").trim();
+                if (!addr) { $scope.showToast("Please enter a valid address."); return; }
+                $scope.currentLocation = addr;
+                $scope.recentAddresses.unshift({ title: 'Recent Search', detail: addr });
+                $scope.manualAddressInput = '';
+                $scope.showToast("Delivery location set!");
+                $scope.closeLocationModal();
+            };
+
+            $scope.selectAddress = function(addr) {
+                $scope.currentLocation = addr.title + ": " + addr.detail;
+                $scope.showToast("Location updated to " + addr.title);
+                $scope.closeLocationModal();
+            };
+
+            $scope.customizingItem = null;
+            $scope.selectedVariant = null;
+            $scope.selectedAddons = [];
+            $scope.toastMessage = null;
+            $scope.selectedCategory = 'All';
+            $scope.vegOnly = false;
+            $scope.searchQuery = '';
+
+            $scope.registeredUsers = [
+                { name: 'Demo User', email: 'user@hungerfuel.in', phone: '9876543210', password: 'password123' }
+            ];
+
+            $scope.signupForm = { name: '', email: '', phone: '', password: '' };
+            $scope.loginForm = { identifier: '', password: '' };
+
+            $scope.showToast = function(msg) {
+                $scope.toastMessage = msg;
+                $timeout(function() {
+                    if ($scope.toastMessage === msg) { $scope.toastMessage = null; }
+                }, 3000);
+            };
+
+            $scope.openAccountModal = function() { $scope.showAccountModal = true; };
+            $scope.closeAccountModal = function() { $scope.showAccountModal = false; };
+
+            $scope.registerNewUser = function() {
+                let f = $scope.signupForm;
+                if (!f.name || !f.email || !f.phone || !f.password) {
+                    $scope.showToast("Please fill in all registration fields.");
+                    return;
+                }
+                let newUser = angular.copy(f);
+                $scope.registeredUsers.push(newUser);
+                $scope.currentUser = newUser;
+                $scope.showToast("Welcome, " + newUser.name + "!");
+                $scope.signupForm = { name: '', email: '', phone: '', password: '' };
+                $scope.closeAccountModal();
+            };
+
+            $scope.loginExistingUser = function() {
+                let f = $scope.loginForm;
+                if (!f.identifier || !f.password) {
+                    $scope.showToast("Please enter login credentials.");
+                    return;
+                }
+                let found = $scope.registeredUsers.find(u => (u.email === f.identifier || u.phone === f.identifier) && u.password === f.password);
+                if (!found && f.identifier.includes('@')) {
+                    found = { name: f.identifier.split('@')[0], email: f.identifier, phone: '9999999999', password: f.password };
+                    $scope.registeredUsers.push(found);
+                }
+                if (found) {
+                    $scope.currentUser = found;
+                    $scope.showToast("Welcome back, " + found.name + "!");
+                    $scope.loginForm = { identifier: '', password: '' };
+                    $scope.closeAccountModal();
+                } else {
+                    $scope.showToast("Invalid credentials.");
+                }
+            };
+
+            $scope.logoutUser = function() {
+                $scope.currentUser = null;
+                $scope.showToast("Signed out successfully.");
+                $scope.closeAccountModal();
+            };
+
+            $scope.categories = ["Waffles", "Maggie", "Kulfis", "Bowl Cake", "Pancakes", "Hot Brownie", "Bomboloni", "Shakes", "Mojito", "Sides", "Fruite Shots", "Combos"];
+
+            $scope.categoryImages = {
+                "Waffles": "https://images.unsplash.com/photo-1587314168485-3236d6710814?w=500&q=80",
+                "Maggie": "https://images.unsplash.com/photo-1612927601101-4537b42c48d9?w=500&q=80",
+                "Kulfis": "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500&q=80",
+                "Bowl Cake": "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=500&q=80",
+                "Pancakes": "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=500&q=80",
+                "Hot Brownie": "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=500&q=80",
+                "Bomboloni": "https://images.unsplash.com/photo-1621236378699-8599fb6c480c?w=500&q=80",
+                "Shakes": "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=500&q=80",
+                "Mojito": "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=500&q=80",
+                "Sides": "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=500&q=80",
+                "Fruite Shots": "https://images.unsplash.com/photo-1546173159-315724a31696?w=500&q=80",
+                "Combos": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500&q=80"
+            };
+
+            var standardAddons = [
+                { id: 'st1', name: 'Extra Dip / Sauce', price: 20 },
+                { id: 'st2', name: 'Extra Butter', price: 25 }
+            ];
+
+            var waffleAddons = [
+                { id: 'w1', name: 'Kitkat Crunch', price: 30 },
+                { id: 'w2', name: 'Oreo Crush', price: 30 },
+                { id: 'w3', name: 'Nutella Drizzle', price: 40 }
+            ];
+
+            $scope.menuItems = [
+                { id: 301, name: "Dark Fantasy Waffle", category: "Waffles", rating: 4.7, veg: true, emoji: "🧇", description: "Dark chocolate crispy waffle", prepTime: "~12 min", variants: [{name: "Regular", price: 60}, {name: "Large", price: 110}], addons: waffleAddons },
+                { id: 302, name: "Milk Fantasy Waffle", category: "Waffles", rating: 4.7, veg: true, emoji: "🧇", description: "Milk chocolate waffle", prepTime: "~12 min", variants: [{name: "Regular", price: 60}, {name: "Large", price: 110}], addons: waffleAddons },
+                { id: 303, name: "White Fantasy Waffle", category: "Waffles", rating: 4.6, veg: true, emoji: "🧇", description: "White chocolate waffle", prepTime: "~12 min", variants: [{name: "Regular", price: 60}, {name: "Large", price: 110}], addons: waffleAddons },
+                { id: 304, name: "Triple Chocolate Waffle", category: "Waffles", rating: 4.9, veg: true, emoji: "🧇", description: "Dark, milk and white chocolate combined", prepTime: "~14 min", variants: [{name: "Regular", price: 90}, {name: "Large", price: 160}], addons: waffleAddons },
+                { id: 305, name: "Coffee Mocha Waffle", category: "Waffles", rating: 4.6, veg: true, emoji: "🧇", description: "Coffee infused chocolate waffle", prepTime: "~12 min", variants: [{name: "Regular", price: 70}, {name: "Large", price: 130}], addons: waffleAddons },
+                { id: 306, name: "Butterscotch Waffle", category: "Waffles", rating: 4.7, veg: true, emoji: "🧇", description: "Crunchy butterscotch bits & caramel", prepTime: "~12 min", variants: [{name: "Regular", price: 70}, {name: "Large", price: 130}], addons: waffleAddons },
+                { id: 307, name: "Naughty Nutella Waffle", category: "Waffles", rating: 5.0, veg: true, emoji: "🧇", description: "Pure Nutella spread waffle", prepTime: "~12 min", variants: [{name: "Regular", price: 80}, {name: "Large", price: 150}], addons: waffleAddons },
+                { id: 308, name: "Red Velvet Waffle", category: "Waffles", rating: 4.8, veg: true, emoji: "🧇", description: "Classic red velvet with cream cheese", prepTime: "~14 min", variants: [{name: "Regular", price: 80}, {name: "Large", price: 150}], addons: waffleAddons },
+                { id: 309, name: "Almond Cocoa Waffle", category: "Waffles", rating: 4.7, veg: true, emoji: "🧇", description: "Almond flakes and rich cocoa", prepTime: "~12 min", variants: [{name: "Regular", price: 80}, {name: "Large", price: 140}], addons: waffleAddons },
+                { id: 310, name: "Oreo Overload Waffle", category: "Waffles", rating: 4.8, veg: true, emoji: "🍪", description: "Crushed oreos with white cream", prepTime: "~12 min", variants: [{name: "Regular", price: 70}, {name: "Large", price: 130}], addons: waffleAddons },
+                { id: 311, name: "KitKat Crunch Waffle", category: "Waffles", rating: 4.9, veg: true, emoji: "🧇", description: "Kitkat chunks with milk chocolate", prepTime: "~12 min", variants: [{name: "Regular", price: 80}, {name: "Large", price: 140}], addons: waffleAddons },
+                { id: 318, name: "Ferrero Rocher Waffle", category: "Waffles", rating: 5.0, veg: true, emoji: "🍫", description: "Crushed Ferrero and hazelnut spread", prepTime: "~15 min", variants: [{name: "Regular", price: 100}, {name: "Large", price: 180}], addons: waffleAddons },
+                { id: 321, name: "Lotus Biscoff Waffle", category: "Waffles", rating: 5.0, veg: true, emoji: "🍪", description: "Lotus Biscoff spread and biscuit", prepTime: "~15 min", variants: [{name: "Regular", price: 120}, {name: "Large", price: 190}], addons: waffleAddons },
+                
+                { id: 901, name: "Plain Masala Maggie", category: "Maggie", rating: 4.6, veg: true, emoji: "🍜", description: "Classic hot masala maggi noodles", prepTime: "~8 min", variants: [{name: "Standard", price: 50}], addons: standardAddons },
+                { id: 902, name: "Cheese Maggie", category: "Maggie", rating: 4.8, veg: true, emoji: "🍜", description: "Loaded with melted cheese slice", prepTime: "~10 min", variants: [{name: "Standard", price: 75}], addons: standardAddons },
+                { id: 904, name: "Corn & Cheese Maggie", category: "Maggie", rating: 4.9, veg: true, emoji: "🌽", description: "Sweet corn kernels with extra cheese", prepTime: "~10 min", variants: [{name: "Standard", price: 90}], addons: standardAddons },
+                
+                { id: 201, name: "Malai Kulfi", category: "Kulfis", rating: 4.8, veg: true, emoji: "🍦", description: "Traditional rich creamy malai kulfi", prepTime: "~5 min", variants: [{name: "Standard", price: 40}], addons: [] },
+                { id: 202, name: "Kesar Pista Kulfi", category: "Kulfis", rating: 4.9, veg: true, emoji: "🍧", description: "Saffron infused rich pistachio kulfi", prepTime: "~5 min", variants: [{name: "Standard", price: 50}], addons: [] },
+                { id: 208, name: "Sitaphal Kulfi", category: "Kulfis", rating: 5.0, veg: true, emoji: "🍈", description: "Real custard apple pulp kulfi", prepTime: "~5 min", variants: [{name: "Standard", price: 70}], addons: [] },
+                { id: 211, name: "Alphonso Mango Kulfi", category: "Kulfis", rating: 4.9, veg: true, emoji: "🥭", description: "Alphonso mango pulp kulfi", prepTime: "~5 min", variants: [{name: "Standard", price: 40}], addons: [] },
+
+                { id: 1001, name: "Choco Lava Bowl Cake", category: "Bowl Cake", rating: 4.9, veg: true, emoji: "🧁", description: "Warm molten lava cake in a bowl", prepTime: "~12 min", variants: [{name: "Standard", price: 140}], addons: standardAddons },
+                { id: 1002, name: "Nutella Overload Bowl Cake", category: "Bowl Cake", rating: 5.0, veg: true, emoji: "🧁", description: "Sponge cake drenched in Nutella", prepTime: "~12 min", variants: [{name: "Standard", price: 170}], addons: standardAddons },
+                
+                { id: 401, name: "Classic Butter & Honey Pancake", category: "Pancakes", rating: 4.7, veg: true, emoji: "🥞", description: "Fluffy pancakes with butter and honey", prepTime: "~10 min", variants: [{name: "Standard", price: 140}], addons: standardAddons },
+                { id: 402, name: "Nutella Pancake", category: "Pancakes", rating: 4.9, veg: true, emoji: "🥞", description: "Fluffy pancakes layered with Nutella", prepTime: "~12 min", variants: [{name: "Standard", price: 200}], addons: standardAddons },
+
+                { id: 501, name: "Sizzling Hot Brownie", category: "Hot Brownie", rating: 4.9, veg: true, emoji: "🍫", description: "Fudgy brownie served hot with vanilla scoop", prepTime: "~10 min", variants: [{name: "Standard", price: 160}], addons: standardAddons },
+                { id: 601, name: "Nutella Bomboloni", category: "Bomboloni", rating: 4.8, veg: true, emoji: "🍩", description: "Italian filled doughnut with Nutella", prepTime: "~10 min", variants: [{name: "Standard", price: 180}], addons: standardAddons },
+
+                { id: 701, name: "Mango Thick Shake", category: "Shakes", rating: 4.8, veg: true, emoji: "🧋", description: "Thick creamy mango milkshake", prepTime: "~8 min", variants: [{name: "Standard", price: 170}], addons: [] },
+                { id: 702, name: "Nutella Thick Shake", category: "Shakes", rating: 5.0, veg: true, emoji: "🧋", description: "Blended with pure Nutella and ice cream", prepTime: "~8 min", variants: [{name: "Standard", price: 190}], addons: [] },
+                { id: 801, name: "Classic Mint Mojito", category: "Mojito", rating: 4.7, veg: true, emoji: "🍹", description: "Refreshing mint and lime sparkler", prepTime: "~5 min", variants: [{name: "Standard", price: 120}], addons: [] },
+                
+                { id: 1101, name: "Crispy French Fries", category: "Sides", rating: 4.7, veg: true, emoji: "🍟", description: "Crispy salted golden french fries", prepTime: "~8 min", variants: [{name: "Regular", price: 90}, {name: "Large", price: 140}], addons: standardAddons },
+                { id: 1103, name: "Cheese Loaded Fries", category: "Sides", rating: 4.9, veg: true, emoji: "🧀", description: "Golden fries drowned in warm melted cheese", prepTime: "~10 min", variants: [{name: "Regular", price: 140}, {name: "Large", price: 190}], addons: standardAddons },
+
+                { id: 1201, name: "Strawberry Fruite Shot", category: "Fruite Shots", rating: 4.9, veg: true, emoji: "🍓", description: "Refreshing layered fruit shot", prepTime: "~5 min", variants: [{name: "Standard", price: 90}], addons: [] },
+                { id: 102, name: "Waffle Party Combo", category: "Combos", rating: 5.0, veg: true, emoji: "🎉", description: "Any 4 signature waffles with extra dips", prepTime: "~20 min", variants: [{name: "Standard", price: 499}], addons: standardAddons }
+            ];
+
+            $scope.selectCategory = function(cat) { $scope.selectedCategory = cat; };
+            $scope.matchesCategory = function(item) { return $scope.selectedCategory === 'All' || item.category === $scope.selectedCategory; };
+            $scope.matchesVeg = function(item) { return !$scope.vegOnly || item.veg === true; };
+
+            $scope.openCustomizeModal = function(item) {
+                $scope.customizingItem = item;
+                $scope.selectedVariant = item.variants[0];
+                $scope.selectedAddons = [];
+            };
+
+            $scope.closeCustomizeModal = function() {
+                $scope.customizingItem = null;
+                $scope.selectedVariant = null;
+                $scope.selectedAddons = [];
+            };
+
+            $scope.selectVariant = function(v) { $scope.selectedVariant = v; };
+            $scope.isAddonSelected = function(a) { return $scope.selectedAddons.some(x => x.id === a.id); };
+            $scope.toggleAddon = function(a) {
+                let idx = $scope.selectedAddons.findIndex(x => x.id === a.id);
+                if (idx > -1) $scope.selectedAddons.splice(idx, 1);
+                else $scope.selectedAddons.push(a);
+            };
+
+            $scope.calculateModalTotal = function() {
+                if (!$scope.customizingItem || !$scope.selectedVariant) return 0;
+                let total = $scope.selectedVariant.price;
+                $scope.selectedAddons.forEach(a => total += a.price);
+                return total;
+            };
+        });
+    </script>
+</body>
+</html>
